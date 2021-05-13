@@ -1,6 +1,7 @@
 package com.vfd.vrpc.handler;
 
 import com.vfd.vrpc.message.RpcResponseMessage;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.Promise;
@@ -15,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author: vfdxvffd
  * @date: 2021/5/10 下午1:31
  */
+@ChannelHandler.Sharable
 public class RpcResponseMessageHandler extends SimpleChannelInboundHandler<RpcResponseMessage> {
 
     private final Map<Integer, Promise<Object>> PROMISES = new ConcurrentHashMap<>();
