@@ -18,6 +18,11 @@ public class JacksonSerializer implements Serializer {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
+    public int getID() {
+        return 3;
+    }
+
+    @Override
     public <T> T deserializer(Class<T> clazz, byte[] bytes) {
         try {
             return objectMapper.readValue(bytes, clazz);

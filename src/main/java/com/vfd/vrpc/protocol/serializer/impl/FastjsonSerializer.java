@@ -14,6 +14,11 @@ import java.nio.charset.StandardCharsets;
  */
 public class FastjsonSerializer implements Serializer {
     @Override
+    public int getID() {
+        return 1;
+    }
+
+    @Override
     public <T> T deserializer(Class<T> clazz, byte[] bytes) {
         return JSON.parseObject(new String(bytes, StandardCharsets.UTF_8), clazz);
     }

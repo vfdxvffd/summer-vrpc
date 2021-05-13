@@ -14,6 +14,12 @@ import java.nio.charset.StandardCharsets;
  * @date: 2021/5/10 上午10:43
  */
 public class GsonSerializer implements Serializer {
+
+    @Override
+    public int getID() {
+        return 2;
+    }
+
     @Override
     public <T> T deserializer(Class<T> clazz, byte[] bytes) {
         Gson gson = new GsonBuilder().registerTypeAdapter(Class.class, new ClassCodec()).create();

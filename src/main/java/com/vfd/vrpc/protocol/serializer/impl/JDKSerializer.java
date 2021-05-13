@@ -13,6 +13,11 @@ import java.io.*;
  */
 public class JDKSerializer implements Serializer {
 
+    @Override
+    public int getID() {
+        return 4;
+    }
+
     @SuppressWarnings("all")
     @Override
     public <T> T deserializer(Class<T> clazz, byte[] bytes) {
