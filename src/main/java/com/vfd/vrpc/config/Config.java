@@ -16,8 +16,10 @@ import java.util.Properties;
  */
 public abstract class Config {
     static Properties properties;
+    public static String propertyFile = "/application.properties";
+
     static {
-        try (InputStream in = Config.class.getResourceAsStream("/application.properties")) {
+        try (InputStream in = Config.class.getResourceAsStream(propertyFile)) {
             properties = new Properties();
             properties.load(in);
         } catch (IOException e) {

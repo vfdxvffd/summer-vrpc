@@ -8,6 +8,7 @@ import com.vfd.vrpc.config.Config;
 import com.vfd.vrpc.handler.RpcRequestMessageHandler;
 import com.vfd.vrpc.handler.RpcResponseMessageHandler;
 import com.vfd.vrpc.message.RpcRequestMessage;
+import com.vfd.vrpc.protocol.Destination;
 import com.vfd.vrpc.protocol.MessageCodec;
 import com.vfd.vrpc.protocol.ProtocolFrameDecoder;
 import com.vfd.vrpc.protocol.SequenceIdGenerator;
@@ -38,18 +39,22 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class VRpc implements Extension {
 
-    public final Map<Integer, Channel> channelMap = new ConcurrentHashMap<>();
-    private Channel channel = null;
+    public final Map<Integer, Channel> serverChannelMap = new ConcurrentHashMap<>();
+    //private Channel channel = null;
+    public final Map<Destination, Channel> clientChannelMap = new ConcurrentHashMap<>();
     RpcResponseMessageHandler RPC_HANDLER = new RpcResponseMessageHandler();
 
     boolean keepAlive = Config.keepAlive();
+
+    private SummerAnnotationConfigApplicationContext context;
 
     //记录关键位置的日志
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
     public void doOperation0 (SummerAnnotationConfigApplicationContext context) {
-
+        this.context = context;
+        Config.propertyFile = context.getPropertyFile();
     }
 
     @Override
@@ -109,7 +114,8 @@ public class VRpc implements Extension {
                             method.getParameterTypes(),
                             args
                     );
-                    final Channel ch = getChannel(destHost, destPort, serializer);
+                    final Destination destination = new Destination(destHost, destPort, serializer);
+                    final Channel ch = getChannel(destination);
                     ch.writeAndFlush(msg);
                     DefaultPromise<Object> promise = new DefaultPromise<>(ch.eventLoop());
                     RPC_HANDLER.getPROMISES().put(sequenceId, promise);
@@ -117,27 +123,27 @@ public class VRpc implements Extension {
                     if (promise.isSuccess()) {
                         final Object now = promise.getNow();
                         if (!keepAlive)
-                            closeConnect();
+                            closeConnect(destination);
                         return now;
                     } else {
                         final Throwable cause = promise.cause();
-                        closeConnect();
+                        closeConnect(destination);
                         throw new RuntimeException(cause);
                     }
                 }));
         return (T) o;
     }
 
-    private Channel getChannel (String destHost, int destPort, Serializer serializer) {
-        if (channel == null)
-            initChannel(destHost, destPort, serializer);
-        return channel;
+    private Channel getChannel (Destination destination) {
+        if (clientChannelMap.getOrDefault(destination, null) == null)
+            initChannel(destination);
+        return clientChannelMap.get(destination);
     }
 
-    private void initChannel (String destHost, int destPort, Serializer serializer) {
+    private void initChannel (Destination destination) {
         EventLoopGroup group = new NioEventLoopGroup();
         Bootstrap bootstrap = new Bootstrap();
-        MessageCodec MESSAGE_CODEC = new MessageCodec(serializer);
+        MessageCodec MESSAGE_CODEC = new MessageCodec(destination.getSerializer());
         bootstrap.group(group)
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<SocketChannel>() {
@@ -151,7 +157,8 @@ public class VRpc implements Extension {
                     }
                 });
         try {
-            channel = bootstrap.connect(destHost, destPort).sync().channel();
+            final Channel channel = bootstrap.connect(destination.getHost(), destination.getPort()).sync().channel();
+            clientChannelMap.put(destination, channel);
             final ChannelFuture channelFuture = channel.closeFuture();
             channelFuture.addListener(future -> group.shutdownGracefully());
         } catch (InterruptedException e) {
@@ -165,11 +172,16 @@ public class VRpc implements Extension {
         if (!Config.providerServer()) {
             return;
         }
+        int port = Config.getServerPort();
+        final Serializer serializer = Config.getServerSerializer();
+        provide0(port, serializer);
+    }
+
+    public void provide0(int port, Serializer serializer) throws Exception {
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
-        MessageCodec MESSAGE_CODEC = new MessageCodec(Config.getServerSerializer());
+        MessageCodec MESSAGE_CODEC = new MessageCodec(serializer);
         RpcRequestMessageHandler RPC_HANDLER = new RpcRequestMessageHandler(context);
-        int port = Config.getServerPort();
         try {
             ServerBootstrap serverBootStrap = new ServerBootstrap();
             serverBootStrap.group(bossGroup, workerGroup)
@@ -185,7 +197,7 @@ public class VRpc implements Extension {
                         }
                     });
             Channel channel = serverBootStrap.bind(port).sync().channel();
-            channelMap.put(port, channel);
+            serverChannelMap.put(port, channel);
             final ChannelFuture channelFuture = channel.closeFuture();
             channelFuture.addListener(future -> {
                 bossGroup.shutdownGracefully();
@@ -197,10 +209,12 @@ public class VRpc implements Extension {
         logger.info("远程服务提供开启，在端口: " + port + "监听");
     }
 
-    public void closeConnect () {
-        if (channel != null)    channel.close();
-        channel = null;
-        RPC_HANDLER = new RpcResponseMessageHandler();
+    public void closeConnect (Destination destination) {
+        Channel channel;
+        if ((channel = clientChannelMap.getOrDefault(destination, null)) != null) {
+            channel.close();
+            clientChannelMap.remove(destination);
+        }
     }
 
     @Override
@@ -222,5 +236,9 @@ public class VRpc implements Extension {
     @Override
     public void doOperation8 (SummerAnnotationConfigApplicationContext context, Object o) {
 
+    }
+
+    public SummerAnnotationConfigApplicationContext getContext() {
+        return this.context;
     }
 }
