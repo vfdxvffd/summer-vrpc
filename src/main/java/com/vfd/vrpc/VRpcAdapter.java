@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author: vfdxvffd
  * @date: 2021/5/12 下午2:20
  */
-public class VRpc implements Extension {
+public class VRpcAdapter implements Extension {
 
     public final Map<Integer, Channel> serverChannelMap = new ConcurrentHashMap<>();
     //private Channel channel = null;
