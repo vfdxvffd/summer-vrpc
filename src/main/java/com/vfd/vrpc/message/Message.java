@@ -1,5 +1,6 @@
 package com.vfd.vrpc.message;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,7 +11,7 @@ import java.util.Map;
  * @author: vfdxvffd
  * @date: 2021/5/10 上午9:53
  */
-public abstract class Message {
+public abstract class Message implements Serializable {
 
     /**
      * 根据消息类型字节，获得对应的消息 class
@@ -35,6 +36,9 @@ public abstract class Message {
      * 响应类型 byte 值
      */
     public static final int  RPC_MESSAGE_TYPE_RESPONSE = 102;
+
+    public static final String PARSE_JSONER_BEANNAME = "parseJsonerBeanName";
+    public static final String RETURN_VALUE = "returnValue";
 
     private static final Map<Integer, Class<? extends Message>> messageClasses = new HashMap<>();
 

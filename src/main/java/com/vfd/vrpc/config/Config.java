@@ -1,7 +1,7 @@
 package com.vfd.vrpc.config;
 
 import com.vfd.vrpc.protocol.serializer.Serializer;
-import com.vfd.vrpc.protocol.serializer.impl.FastjsonSerializer;
+import com.vfd.vrpc.protocol.serializer.impl.JDKSerializer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,7 +61,7 @@ public abstract class Config {
 
     private static Serializer getSerializer(String value) throws Exception {
         if(value == null) {
-            return new FastjsonSerializer();
+            return new JDKSerializer();
         } else {
             try {
                 final Object o = Class.forName(value).newInstance();

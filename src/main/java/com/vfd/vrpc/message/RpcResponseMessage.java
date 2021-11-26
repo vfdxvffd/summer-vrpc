@@ -12,6 +12,9 @@ public class RpcResponseMessage extends Message {
      * 返回值
      */
     private Object returnValue;
+
+    private String parseJsonerBeanName;
+
     /**
      * 异常值
      */
@@ -52,5 +55,13 @@ public class RpcResponseMessage extends Message {
 
     public void setExceptionValue(Exception exceptionValue) {
         this.exceptionValue = exceptionValue;
+    }
+
+    public String getParseJsonerBeanName() {
+        return parseJsonerBeanName;
+    }
+
+    public void setParseJsonerBeanName(String parseJsonerBeanName) {
+        this.parseJsonerBeanName = parseJsonerBeanName;
     }
 }

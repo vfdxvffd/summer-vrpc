@@ -1,8 +1,11 @@
 package com.vfd.vrpc.handler;
 
 import com.vfd.summer.applicationContext.ApplicationContext;
+import com.vfd.summer.ioc.bean.BeanDefinition;
+import com.vfd.vrpc.annotation.ParseByBean;
 import com.vfd.vrpc.message.RpcRequestMessage;
 import com.vfd.vrpc.message.RpcResponseMessage;
+import com.vfd.vrpc.protocol.serializer.ParseJsoner4Param;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -34,16 +37,30 @@ public class RpcRequestMessageHandler extends SimpleChannelInboundHandler<RpcReq
         response.setSequenceId(message.getSequenceId());
         try {
             final Object o;
+            BeanDefinition beanDefinition;
             if ("".equals(message.getBeanName())) {
                 o = ioc.getBean(message.getBeanType());
+                beanDefinition = ioc.getBeanDefinition(message.getBeanType());
             } else {
                 o = ioc.getBean(message.getBeanName(), message.getBeanType());//ServicesFactory.getService(message.getInterfaceName(), interfaceToImplement);
+                beanDefinition = ioc.getBeanDefinition(message.getBeanName(), message.getBeanType());
             }
-            final Method method = o.getClass().getMethod(message.getMethodName(), message.getParameterTypes());
-            final Object invoke = method.invoke(o, message.getParameterValue());
+
+            Method realMethod = beanDefinition.getBeanClass().getDeclaredMethod(message.getMethodName(), message.getParameterTypes());
+            ParseByBean parseByBean = realMethod.getAnnotation(ParseByBean.class);
+            final Method method = o.getClass().getDeclaredMethod(message.getMethodName(), message.getParameterTypes());
+            Object[] params = message.getParameterValue();
+            if (parseByBean != null && !"".equals(parseByBean.parseParamsBeanName())) {
+                ParseJsoner4Param parseJsoner4Param = ioc.getBean(parseByBean.parseParamsBeanName(), ParseJsoner4Param.class);
+                params = parseJsoner4Param.parseParam(params);
+            }
+            final Object invoke = method.invoke(o, params);
             response.setReturnValue(invoke);
+            if (parseByBean != null && !"".equals(parseByBean.parseResultBeanName())) {
+                response.setParseJsonerBeanName(parseByBean.parseResultBeanName());
+            }
         } catch (Exception e) {
-            // e.printStackTrace();
+            e.printStackTrace();
             String msg;
             final Throwable cause = e.getCause();
             if (cause == null)  msg = e.getMessage();

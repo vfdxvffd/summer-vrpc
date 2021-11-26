@@ -21,22 +21,22 @@ public class JDKSerializer implements Serializer {
     @SuppressWarnings("all")
     @Override
     public <T> T deserializer(Class<T> clazz, byte[] bytes) {
-        try {
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
+        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
             return (T) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
             throw new RuntimeException("反序列化失败", e);
         }
     }
 
     @Override
     public <T> byte[] serializer(T o) {
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
             oos.writeObject(o);
             return bos.toByteArray();
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("序列化失败", e);
         }
     }

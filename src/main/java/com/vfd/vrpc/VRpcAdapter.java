@@ -7,11 +7,13 @@ import com.vfd.vrpc.annotation.Reference;
 import com.vfd.vrpc.config.Config;
 import com.vfd.vrpc.handler.RpcRequestMessageHandler;
 import com.vfd.vrpc.handler.RpcResponseMessageHandler;
+import com.vfd.vrpc.message.Message;
 import com.vfd.vrpc.message.RpcRequestMessage;
 import com.vfd.vrpc.protocol.Destination;
 import com.vfd.vrpc.protocol.MessageCodec;
 import com.vfd.vrpc.protocol.ProtocolFrameDecoder;
 import com.vfd.vrpc.protocol.SequenceIdGenerator;
+import com.vfd.vrpc.protocol.serializer.ParseJsoner4Result;
 import com.vfd.vrpc.protocol.serializer.Serializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -25,8 +27,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -76,12 +80,12 @@ public class VRpcAdapter implements Extension {
     @Override
     public void doOperation3 (SummerAnnotationConfigApplicationContext context) throws Exception {
         for (Map.Entry<String, Object> objectEntry : context.getEarlyRealObjects().entrySet()) {
-            referenceObject(objectEntry.getValue());
+            referenceObject(context, objectEntry.getValue());
         }
         logger.info("远程调用的代理对象设置完成");
     }
 
-    private void referenceObject (Object object) throws Exception {
+    private void referenceObject (SummerAnnotationConfigApplicationContext context, Object object) throws Exception {
         final Class<?> clazz = object.getClass();
         for (Field field : clazz.getDeclaredFields()) {
             final Reference reference = field.getAnnotation(Reference.class);
@@ -93,14 +97,15 @@ public class VRpcAdapter implements Extension {
                 String host = "".equals(reference.host())? Config.getDestHost():reference.host();
                 int port = reference.port() == -1? Config.getDestPort():reference.port();
                 Serializer serializer = reference.serializer()==Serializer.class? Config.getDestSerializer():reference.serializer().newInstance();
-                final Object remoteObj = getRemoteObj(host, port, serializer, reference.beanName(), field.getType());
+                final Object remoteObj = getRemoteObj(context, host, port, serializer, reference.beanName(), field.getType());
                 field.set(object, remoteObj);
             }
         }
     }
 
     @SuppressWarnings("all")
-    private <T> T getRemoteObj (String destHost, int destPort, Serializer serializer,
+    private <T> T getRemoteObj (SummerAnnotationConfigApplicationContext context,
+                                String destHost, int destPort, Serializer serializer,
                                  String beanName, Class<T> beanType) {
         final Object o = Proxy.newProxyInstance(beanType.getClassLoader(), new Class[] {beanType},
                 ((proxy, method, args) -> {
@@ -117,14 +122,25 @@ public class VRpcAdapter implements Extension {
                     final Destination destination = new Destination(destHost, destPort, serializer);
                     final Channel ch = getChannel(destination);
                     ch.writeAndFlush(msg);
-                    DefaultPromise<Object> promise = new DefaultPromise<>(ch.eventLoop());
+                    DefaultPromise<Map<String, Object>> promise = new DefaultPromise<>(ch.eventLoop());
                     RPC_HANDLER.getPROMISES().put(sequenceId, promise);
                     promise.await();
                     if (promise.isSuccess()) {
-                        final Object now = promise.getNow();
-                        if (!keepAlive)
+                        final Map<String, Object> now = promise.getNow();
+                        if (!keepAlive) {
                             closeConnect(destination);
-                        return now;
+                        }
+
+                        Object result = now.get(Message.RETURN_VALUE);
+                        String parseJsonerBeanName = (String) now.get(Message.PARSE_JSONER_BEANNAME);
+                        if (parseJsonerBeanName != null) {
+                            ParseJsoner4Result parseJsoner4Result = context.getBean(parseJsonerBeanName, ParseJsoner4Result.class);
+                            Object finalResult = parseJsoner4Result.parseJsonToObject(result);
+                            logger.debug("转换器: " + parseJsoner4Result + ", finalResult: " + finalResult);
+                            return finalResult;
+                        }
+                        logger.debug("不使用转化器, result = " + result);
+                        return result;
                     } else {
                         final Throwable cause = promise.cause();
                         closeConnect(destination);
@@ -230,11 +246,21 @@ public class VRpcAdapter implements Extension {
     // 对此对象进行检查，如果其中的域包含了@Reference注解，则对其进行注入
     @Override
     public void doOperation7 (SummerAnnotationConfigApplicationContext context, Object o) throws Exception {
-        referenceObject(o);
+        referenceObject(context, o);
     }
 
     @Override
     public void doOperation8 (SummerAnnotationConfigApplicationContext context, Object o) {
+
+    }
+
+    @Override
+    public void doOperation9(SummerAnnotationConfigApplicationContext summerAnnotationConfigApplicationContext) throws Exception {
+
+    }
+
+    @Override
+    public void doOperationWhenProxy(SummerAnnotationConfigApplicationContext summerAnnotationConfigApplicationContext, Method method, List<Method> list, List<Object> list1, List<Method> list2, List<Object> list3, List<Method> list4, List<Object> list5, List<Method> list6, List<Object> list7) throws Exception {
 
     }
 

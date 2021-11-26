@@ -6,7 +6,7 @@
 
     <groupId>com.vfdxvffd</groupId>
     <artifactId>summer-vrpc</artifactId>
-    <version>0.1.PRE-RELEASE</version>
+    <version>0.2.PRE-RELEASE</version>
 
     <build>
         <plugins>
@@ -74,11 +74,11 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.vfd</groupId>
+            <groupId>com.vfdxvffd</groupId>
             <artifactId>Summer</artifactId>
-            <version>v0.5-vfdxvffd</version>
+            <version>1.2.RELEASE</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/Summer-v1.0-vfdxvffd.jar</systemPath>
+            <systemPath>${project.basedir}/lib/summer-1.2.RELEASE.jar</systemPath>
         </dependency>
 
         <!--        <dependency>
