@@ -14,4 +14,5 @@ public @interface Reference {
     int port() default -1;          // 端口
     String beanName() default "";   // 指定bean的名字
     Class<? extends Serializer> serializer() default Serializer.class;  // 序列化的方式
+    String alias() default "";
 }

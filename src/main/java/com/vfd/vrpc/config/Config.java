@@ -106,4 +106,12 @@ public abstract class Config {
             return Boolean.parseBoolean(value);
         }
     }
+
+    public static String getClientAlias () {
+        return properties.getProperty("summer.rpc.client.alias");
+    }
+
+    public static String getServerAlias () {
+        return properties.getProperty("summer.rpc.server.alias");
+    }
 }

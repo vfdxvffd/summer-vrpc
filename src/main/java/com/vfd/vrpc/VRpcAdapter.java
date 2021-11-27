@@ -97,7 +97,7 @@ public class VRpcAdapter implements Extension {
                 String host = "".equals(reference.host())? Config.getDestHost():reference.host();
                 int port = reference.port() == -1? Config.getDestPort():reference.port();
                 Serializer serializer = reference.serializer()==Serializer.class? Config.getDestSerializer():reference.serializer().newInstance();
-                final Object remoteObj = getRemoteObj(context, host, port, serializer, reference.beanName(), field.getType());
+                final Object remoteObj = getRemoteObj(context, host, port, serializer, reference.beanName(), field.getType(), reference.alias());
                 field.set(object, remoteObj);
             }
         }
@@ -106,7 +106,7 @@ public class VRpcAdapter implements Extension {
     @SuppressWarnings("all")
     private <T> T getRemoteObj (SummerAnnotationConfigApplicationContext context,
                                 String destHost, int destPort, Serializer serializer,
-                                 String beanName, Class<T> beanType) {
+                                 String beanName, Class<T> beanType, String alias) {
         final Object o = Proxy.newProxyInstance(beanType.getClassLoader(), new Class[] {beanType},
                 ((proxy, method, args) -> {
                     final int sequenceId = SequenceIdGenerator.nextId();
@@ -119,6 +119,7 @@ public class VRpcAdapter implements Extension {
                             method.getParameterTypes(),
                             args
                     );
+                    msg.setAlias("".equals(alias) ? Config.getClientAlias() : alias);
                     final Destination destination = new Destination(destHost, destPort, serializer);
                     final Channel ch = getChannel(destination);
                     ch.writeAndFlush(msg);

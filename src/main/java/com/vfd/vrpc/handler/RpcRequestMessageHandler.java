@@ -3,6 +3,7 @@ package com.vfd.vrpc.handler;
 import com.vfd.summer.applicationContext.ApplicationContext;
 import com.vfd.summer.ioc.bean.BeanDefinition;
 import com.vfd.vrpc.annotation.ParseByBean;
+import com.vfd.vrpc.config.Config;
 import com.vfd.vrpc.message.RpcRequestMessage;
 import com.vfd.vrpc.message.RpcResponseMessage;
 import com.vfd.vrpc.protocol.serializer.ParseJsoner4Param;
@@ -59,6 +60,7 @@ public class RpcRequestMessageHandler extends SimpleChannelInboundHandler<RpcReq
             if (parseByBean != null && !"".equals(parseByBean.parseResultBeanName())) {
                 response.setParseJsonerBeanName(parseByBean.parseResultBeanName());
             }
+            response.setAlias(Config.getServerAlias());
         } catch (Exception e) {
             e.printStackTrace();
             String msg;

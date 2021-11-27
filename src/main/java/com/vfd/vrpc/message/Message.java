@@ -26,6 +26,11 @@ public abstract class Message implements Serializable {
 
     private int messageType;
 
+    /**
+     * 为客户端、服务端起别名
+     */
+    private String alias;
+
     public abstract int getMessageType();
 
     /**
@@ -53,5 +58,13 @@ public abstract class Message implements Serializable {
 
     public void setSequenceId(int sequenceId) {
         this.sequenceId = sequenceId;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 }

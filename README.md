@@ -1,14 +1,15 @@
 # summer-vrpc
 
-[![](https://img.shields.io/badge/pre--release-v0.1-informational)](https://github.com/vfdxvffd/summer-vrpc/releases/tag/v0.1)&nbsp;&nbsp;&nbsp;[![](https://img.shields.io/badge/Quick%20Start-%E6%96%87%E6%A1%A3-important)](快速开始.md)
+ [![](https://img.shields.io/badge/pre--release-v0.2-blue)](https://github.com/vfdxvffd/summer-vrpc/releases/tag/v0.2)&nbsp;&nbsp;&nbsp;[![](https://img.shields.io/badge/Quick%20Start-%E6%96%87%E6%A1%A3-important)](快速开始.md)
 
 ​		一款基于netty实现的用于Java的rpc框架，适配到[summer](https://github.com/vfdxvffd/Summer)（一个自己实现的类似Spring的Java框架）框架的适配版本，利用注解可以更快的开发。项目持续维护中...欢迎Star！Thanks~~~
 
 ## 版本兼容(Version)
 
-| Summer                                                       | summer-vrpc                                                  | vrpc                                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| v1.0-release及以上[![](https://img.shields.io/badge/Release-v1.0-important)](https://github.com/vfdxvffd/Summer/releases/v1.0) | v0.1-pre-release[![](https://img.shields.io/badge/pre--release-v0.1-informational)](https://github.com/vfdxvffd/summer-vrpc/releases/tag/v0.1) | v0.2-pre-release[![](https://img.shields.io/badge/pre--release-v0.2-9cf)](https://github.com/vfdxvffd/vrpc/releases/tag/v0.2) |
+| Summer                                                       | summer-vrpc                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| v1.2[![](https://img.shields.io/badge/Release-v1.2-important)](https://github.com/vfdxvffd/Summer/releases/v1.2) | v0.2-pre-release [![](https://img.shields.io/badge/pre--release-v0.2-blue)](https://github.com/vfdxvffd/summer-vrpc/releases/tag/v0.2) |
+| v1.0-release及以上[![](https://img.shields.io/badge/Release-v1.0-important)](https://github.com/vfdxvffd/Summer/releases/v1.0) | v0.1-pre-release[![](https://img.shields.io/badge/pre--release-v0.1-informational)](https://github.com/vfdxvffd/summer-vrpc/releases/tag/v0.1) |
 
 ## 快速开始(Quick Start)
 
